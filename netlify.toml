@@ -1,7 +1,7 @@
 [build]
   base = "work-calendar-2026"
   command = "npm run build"
-  publish = "work-calendar-2026/dist"
+  publish = "dist"
 
 [[redirects]]
   from = "/*"
