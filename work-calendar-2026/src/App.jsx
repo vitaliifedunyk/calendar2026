@@ -20,7 +20,7 @@ function App() {
   const { theme, language } = useApp()
   const t = translations[language] || translations.en
   
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1))
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, new Date().getMonth(), 1))
   const [workEntries, setWorkEntries] = useState({})
   const [hourlyRate, setHourlyRate] = useState(0)
   const [notes, setNotes] = useState({})
@@ -29,7 +29,6 @@ function App() {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [viewMode, setViewMode] = useState('month') // 'month' or 'week'
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -351,8 +350,6 @@ function App() {
               selectedDate={selectedDate}
               onSaveEntry={handleSaveEntry}
               onDeleteEntry={handleDeleteEntry}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
             />
           </div>
 
