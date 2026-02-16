@@ -21,14 +21,14 @@ This repository exists as a practical utility for working-hours tracking, not as
 
 ## 📁 Project Structure
 ```text
-work-calendar-2026/
+.
 ├── src/
-│   ├── components/      # Calendar UI, entry modal, settings, summary, search, data management
+│   ├── components/      # Calendar UI, entry modal, settings, search, data management
 │   ├── context/         # App-level theme/language context
 │   ├── utils/           # Date, translation, import/export helpers
 │   ├── App.jsx          # Main application composition and state
 │   └── main.jsx         # App entry point
-├── public/              # Static assets and SPA redirect config
+├── public/              # Static assets (favicon, etc.)
 ├── dist/                # Generated build output
 ├── index.html
 ├── package.json
@@ -37,7 +37,6 @@ work-calendar-2026/
 
 ## 🚀 How to use
 ```bash
-cd work-calendar-2026
 npm install
 npm run dev
 ```
