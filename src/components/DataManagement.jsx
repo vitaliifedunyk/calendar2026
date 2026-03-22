@@ -11,7 +11,7 @@ const DataManagement = ({ workEntries, hourlyRate, notes = {}, goals = {}, onImp
   const handleExportJSON = () => {
     try {
       exportToJSON(workEntries, hourlyRate, notes, goals)
-    } catch (error) {
+    } catch {
       alert(t.importError)
     }
   }
@@ -19,7 +19,7 @@ const DataManagement = ({ workEntries, hourlyRate, notes = {}, goals = {}, onImp
   const handleExportCSV = () => {
     try {
       exportToCSV(workEntries, hourlyRate, notes)
-    } catch (error) {
+    } catch {
       alert(t.importError)
     }
   }
@@ -121,4 +121,3 @@ const DataManagement = ({ workEntries, hourlyRate, notes = {}, goals = {}, onImp
 }
 
 export default DataManagement
-

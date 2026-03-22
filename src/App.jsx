@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useEffectEvent } from 'react'
 import Calendar from './components/Calendar'
 import EnhancedSummary from './components/EnhancedSummary'
 import Settings from './components/Settings'
@@ -8,6 +8,13 @@ import Search from './components/Search'
 import { useApp } from './context/AppContext'
 import { translations } from './utils/translations'
 import { formatDateKey, parseDateKey } from './utils/dateUtils'
+import {
+  createDefaultGoals,
+  sanitizeEntries,
+  sanitizeGoals,
+  sanitizeHourlyRate,
+  sanitizeNotes
+} from './utils/dataValidation'
 
 const STORAGE_KEYS = {
   WORK_ENTRIES: 'workCalendar2026_entries',
@@ -24,11 +31,19 @@ function App() {
   const [workEntries, setWorkEntries] = useState({})
   const [hourlyRate, setHourlyRate] = useState(0)
   const [notes, setNotes] = useState({})
-  const [goals, setGoals] = useState({ monthly: {}, yearly: { hours: 0, earnings: 0 } })
+  const [goals, setGoals] = useState(createDefaultGoals)
   const [showSettings, setShowSettings] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const alertLoadingError = useEffectEvent(() => {
+    alert(t.errorLoadingData)
+  })
+
+  const alertStorageQuotaExceeded = useEffectEvent(() => {
+    alert(t.storageQuotaExceeded)
+  })
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -39,44 +54,27 @@ function App() {
       const savedGoals = localStorage.getItem(STORAGE_KEYS.GOALS)
 
       if (savedEntries) {
-        const parsed = JSON.parse(savedEntries)
-        // Validate and clean up date keys
-        const cleaned = {}
-        Object.keys(parsed).forEach(key => {
-          // Ensure key is in YYYY-MM-DD format
-          if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-            cleaned[key] = parsed[key]
-          }
-        })
-        setWorkEntries(cleaned)
+        setWorkEntries(sanitizeEntries(JSON.parse(savedEntries)))
       }
 
       if (savedRate) {
-        setHourlyRate(parseFloat(savedRate) || 0)
+        setHourlyRate(sanitizeHourlyRate(savedRate))
       }
 
       if (savedNotes) {
-        const parsed = JSON.parse(savedNotes)
-        const cleaned = {}
-        Object.keys(parsed).forEach(key => {
-          if (/^\d{4}-\d{2}-\d{2}$/.test(key) && typeof parsed[key] === 'string') {
-            cleaned[key] = parsed[key]
-          }
-        })
-        setNotes(cleaned)
+        setNotes(sanitizeNotes(JSON.parse(savedNotes)))
       }
 
       if (savedGoals) {
-        const parsed = JSON.parse(savedGoals)
-        setGoals(parsed)
+        setGoals(sanitizeGoals(JSON.parse(savedGoals)))
       }
     } catch (error) {
       console.error('Error loading data from localStorage:', error)
-      alert(t.errorLoadingData)
+      alertLoadingError()
     } finally {
       setIsLoading(false)
     }
-  }, [t])
+  }, [])
 
   // Auto-save work entries to localStorage
   useEffect(() => {
@@ -85,13 +83,13 @@ function App() {
         localStorage.setItem(STORAGE_KEYS.WORK_ENTRIES, JSON.stringify(workEntries))
       } catch (error) {
         if (error.name === 'QuotaExceededError') {
-          alert(t.storageQuotaExceeded)
+          alertStorageQuotaExceeded()
         } else {
           console.error('Error saving work entries:', error)
         }
       }
     }
-  }, [workEntries, isLoading, t])
+  }, [workEntries, isLoading])
 
   // Auto-save hourly rate to localStorage
   useEffect(() => {
@@ -100,13 +98,13 @@ function App() {
         localStorage.setItem(STORAGE_KEYS.HOURLY_RATE, hourlyRate.toString())
       } catch (error) {
         if (error.name === 'QuotaExceededError') {
-          alert(t.storageQuotaExceeded)
+          alertStorageQuotaExceeded()
         } else {
           console.error('Error saving hourly rate:', error)
         }
       }
     }
-  }, [hourlyRate, isLoading, t])
+  }, [hourlyRate, isLoading])
 
   // Auto-save notes to localStorage
   useEffect(() => {
@@ -115,13 +113,13 @@ function App() {
         localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes))
       } catch (error) {
         if (error.name === 'QuotaExceededError') {
-          alert(t.storageQuotaExceeded)
+          alertStorageQuotaExceeded()
         } else {
           console.error('Error saving notes:', error)
         }
       }
     }
-  }, [notes, isLoading, t])
+  }, [notes, isLoading])
 
   // Auto-save goals to localStorage
   useEffect(() => {
@@ -130,13 +128,13 @@ function App() {
         localStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify(goals))
       } catch (error) {
         if (error.name === 'QuotaExceededError') {
-          alert(t.storageQuotaExceeded)
+          alertStorageQuotaExceeded()
         } else {
           console.error('Error saving goals:', error)
         }
       }
     }
-  }, [goals, isLoading, t])
+  }, [goals, isLoading])
 
   const handleDateClick = (date) => {
     setSelectedDate(date)
@@ -184,21 +182,10 @@ function App() {
   }
 
   const handleImport = (importedEntries, importedRate, importedNotes, importedGoals) => {
-    setWorkEntries(importedEntries)
-    if (importedRate > 0) {
-      setHourlyRate(importedRate)
-    }
-    if (importedNotes) {
-      setNotes(importedNotes)
-    }
-    if (importedGoals) {
-      setGoals(importedGoals)
-    }
-  }
-
-  const getNoteForDate = (date) => {
-    const dateKey = formatDateKey(date)
-    return notes[dateKey] || ''
+    setWorkEntries(sanitizeEntries(importedEntries))
+    setHourlyRate(sanitizeHourlyRate(importedRate))
+    setNotes(sanitizeNotes(importedNotes))
+    setGoals(sanitizeGoals(importedGoals))
   }
 
   // Keyboard shortcuts

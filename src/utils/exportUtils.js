@@ -1,5 +1,12 @@
 // Utility functions for exporting and importing data
 
+import {
+  sanitizeEntries,
+  sanitizeGoals,
+  sanitizeHourlyRate,
+  sanitizeNotes,
+} from "./dataValidation";
+
 export const exportToJSON = (
   workEntries,
   hourlyRate,
@@ -73,58 +80,13 @@ export const importFromJSON = (file) => {
           return;
         }
 
-        // Clean and validate date keys
-        const cleanedEntries = {};
-        Object.keys(data.entries || {}).forEach((key) => {
-          if (
-            /^\d{4}-\d{2}-\d{2}$/.test(key) &&
-            typeof data.entries[key] === "number"
-          ) {
-            cleanedEntries[key] = data.entries[key];
-          }
-        });
-
-        // Clean and validate notes
-        const cleanedNotes = {};
-        Object.keys(data.notes || {}).forEach((key) => {
-          if (
-            /^\d{4}-\d{2}-\d{2}$/.test(key) &&
-            typeof data.notes[key] === "string"
-          ) {
-            cleanedNotes[key] = data.notes[key];
-          }
-        });
-
-        // Validate goals structure
-        const cleanedGoals = {
-          monthly: {},
-          yearly: { hours: 0, earnings: 0 },
-        };
-        if (data.goals) {
-          if (data.goals.monthly && typeof data.goals.monthly === "object") {
-            cleanedGoals.monthly = data.goals.monthly;
-          }
-          if (data.goals.yearly && typeof data.goals.yearly === "object") {
-            cleanedGoals.yearly = {
-              hours:
-                typeof data.goals.yearly.hours === "number"
-                  ? data.goals.yearly.hours
-                  : 0,
-              earnings:
-                typeof data.goals.yearly.earnings === "number"
-                  ? data.goals.yearly.earnings
-                  : 0,
-            };
-          }
-        }
-
         resolve({
-          entries: cleanedEntries,
-          hourlyRate: typeof data.hourlyRate === "number" ? data.hourlyRate : 0,
-          notes: cleanedNotes,
-          goals: cleanedGoals,
+          entries: sanitizeEntries(data.entries),
+          hourlyRate: sanitizeHourlyRate(data.hourlyRate),
+          notes: sanitizeNotes(data.notes),
+          goals: sanitizeGoals(data.goals),
         });
-      } catch (error) {
+      } catch {
         reject(new Error("Invalid JSON file"));
       }
     };
